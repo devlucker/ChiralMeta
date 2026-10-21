@@ -1,6 +1,6 @@
 /**
  * ChiralMeta — Interactive Workbench JavaScript
- * Premium Clinical Biotech Light Theme · MAT-07
+ * Premium Clinical Biotech Glassmorphism Interface
  */
 
 'use strict';
@@ -493,7 +493,7 @@ function displaySimilar(simList) {
 }
 
 // ============================================================
-// Cleaning Audit Report (40 Marks)
+// Cleaning Audit Report
 // ============================================================
 async function loadCleaningReport() {
   const stagesEl = document.getElementById('stageCards');
@@ -770,7 +770,7 @@ async function loadMissingChart(elId) {
 }
 
 // ============================================================
-// Model Benchmark & Evaluation Arena (40 Marks)
+// Model Benchmark & Evaluation Arena
 // ============================================================
 async function runBenchmark() {
   const btn = document.getElementById('runEvalBtn');
