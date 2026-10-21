@@ -166,8 +166,8 @@ The UI includes 6 interactive Plotly.js charts formatted according to scientific
 
 ### 1. Clone & Install Dependencies
 ```bash
-git clone https://github.com/lakshit/chiral-meta-catalysis.git
-cd chiral-meta-catalysis
+git clone https://github.com/devlucker/ChiralMeta.git
+cd ChiralMeta
 pip install -r requirements.txt
 ```
 
