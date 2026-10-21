@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="36" height="36" fill="none">
+  <!-- Subtle background rounded badge -->
+  <rect width="40" height="40" rx="8" fill="#F0FDFA" stroke="#CCFBF1" stroke-width="1"/>
+  
+  <!-- Network coordinate bonds -->
+  <line x1="20" y1="20" x2="20" y2="7" stroke="#0D9488" stroke-width="2" stroke-linecap="round"/>
+  <line x1="20" y1="20" x2="31" y2="28" stroke="#0F766E" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Chiral Stereochemical Wedge (front bond) -->
+  <polygon points="20,20 8,30 11,33" fill="#0D9488"/>
+  
+  <!-- Stereochemical Dash (back bond) -->
+  <line x1="20" y1="20" x2="30" y2="12" stroke="#64748B" stroke-width="1.8" stroke-dasharray="2,2" stroke-linecap="round"/>
+  
+  <!-- Coordination orbital arc (asymmetric catalyst coordination) -->
+  <path d="M 12 14 A 10 10 0 0 1 28 14" stroke="#06B6D4" stroke-width="1.5" stroke-dasharray="2 1.5" stroke-linecap="round"/>
+  
+  <!-- Peripheral ligand nodes -->
+  <circle cx="20" cy="7" r="3.2" fill="#0D9488"/>
+  <circle cx="31" cy="28" r="3" fill="#14B8A6"/>
+  <circle cx="9.5" cy="31.5" r="3" fill="#0F766E"/>
+  <circle cx="30" cy="12" r="2.4" fill="#94A3B8"/>
+  
+  <!-- Central Metal Catalyst Core (Co/Ir/Rh chiral center) -->
+  <circle cx="20" cy="20" r="4.5" fill="#0F172A"/>
+  <circle cx="20" cy="20" r="2.2" fill="#2DD4BF"/>
+</svg>

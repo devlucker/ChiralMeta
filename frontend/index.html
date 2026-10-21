@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ChiralMeta — Asymmetric Catalysis Meta-Learning Workbench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/styles.css?v=2.5"/>
+<!-- Plotly.js -->
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+</head>
+<body>
+
+<!-- Hardware-Accelerated Ambient Mesh Background Canvas (Zero-Jank Composited Layer) -->
+<div class="ambient-mesh-canvas" aria-hidden="true"></div>
+
+<!-- FLOATING APPLE-INSPIRED TOP BAR -->
+<div class="floating-header-wrapper">
+  <!-- Far Top-Left: Floating Brand -->
+  <div class="floating-brand fixed top-6 left-8 z-40 flex items-center">
+    <div class="brand-logo-badge">
+      <img src="/static/assets/chiralmeta-logo.svg" width="22" height="22" alt="ChiralMeta Logo" class="brand-logo flex-shrink-0"/>
+    </div>
+    <div class="brand-text-wrap">
+      <span class="brand-name">Chiral<span class="brand-name-accent">Meta</span></span>
+    </div>
+  </div>
+
+  <!-- Center: Floating Glassmorphic Pill Navigation Bar -->
+  <nav class="floating-nav-pill fixed top-6 left-1/2 transform -translate-x-1/2 z-50 flex items-center bg-white/70 backdrop-blur-xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-full px-2 py-1.5" id="mainNav">
+    <button class="nav-tab-btn active" data-tab="predictor">Predictor</button>
+    <button class="nav-tab-btn" data-tab="evaluation">Model Arena</button>
+    <button class="nav-tab-btn" data-tab="batch">Batch Screening</button>
+  </nav>
+
+  <!-- Far Top-Right: Floating Status & Quick Actions -->
+  <div class="floating-actions fixed top-6 right-8 z-40 flex items-center gap-2.5">
+    <div class="status-pill flex items-center gap-2">
+      <div class="status-circle"></div>
+      <span>Model Ready</span>
+    </div>
+    <button class="subtle-audit-btn" onclick="switchTab('cleaning')" title="Inspect 40-Mark Chemical Cleaning Pipeline & Audit Trail">
+      Data Audit
+    </button>
+    <a href="/api/download-cleaned-csv" class="btn btn-secondary action-export-pill">
+      Export Cleaned CSV
+    </a>
+  </div>
+</div>
+
+<!-- MAIN WORKSPACE -->
+<main class="main-container">
+
+  <!-- ══════════════════════════════════════════════════════════════════════════
+       TAB 1: SELECTIVITY PREDICTOR WORKBENCH
+       ══════════════════════════════════════════════════════════════════════════ -->
+  <section class="tab-pane active" id="tab-predictor">
+
+    <!-- Biomedical Context (Thalidomide Lesson) Banner -->
+    <div class="context-box" onclick="toggleThalidomide()">
+      <div class="context-header">
+        <div>
+          <span class="context-title">Stereochemical Context:</span>
+          <span class="text-secondary" style="font-size: 13px; margin-left: 6px;">The Thalidomide Lesson &amp; Rationale for Enantioselective Catalysis</span>
+        </div>
+        <span class="context-expand-hint" id="thalidomideChevron">Expand Context</span>
+      </div>
+      <div class="context-body" id="thalidomideContent">
+        <p>
+          <strong>The Mirror-Image Dichotomy:</strong> In pharmacology, non-superimposable stereoisomers (enantiomers) often exhibit diametrically opposing bioactivities. During 1957–1961, the racemic prescription of <strong>Thalidomide</strong> caused over 10,000 cases of severe phocomelia in newborns worldwide. Research subsequently revealed that while the <em>(R)-enantiomer</em> operated as a safe, effective sedative against morning sickness, its mirror-image <em>(S)-enantiomer</em> acted as a potent teratogen that inhibited fetal angiogenesis.
+        </p>
+        <p style="margin-top: 8px;">
+          <strong>Asymmetric Catalysis Rationale:</strong> Modern drug discovery strictly necessitates enantiopure syntheses. Asymmetric hydrogenation catalysts employ chiral ligands coordinated to transition metals (Co, Ir, Rh) to selectively yield only one target enantiomer (enantiomeric excess &ge; 80% ee). <strong>ChiralMeta</strong> leverages Prototypical Meta-Learning to predict stereochemical selectivity prior to empirical wet-lab screening.
+        </p>
+      </div>
+    </div>
+
+    <!-- Predictor 2-Column Grid -->
+    <div class="predictor-grid">
+
+      <!-- LEFT COLUMN: Parameter Specification Form (Glassmorphism Frosted Container) -->
+      <div class="card sidebar-card" id="sidebarContainer">
+        <div class="card-header pb-2.5 mb-3">
+          <span class="card-title text-sm font-extrabold text-teal-700 uppercase tracking-wider">Reaction Specification</span>
+          <button class="btn btn-secondary text-xs px-2.5 py-1" onclick="openDatasetModal()" style="font-size: 11px; padding: 4px 9px;">
+            Browse 778 Reactions
+          </button>
+        </div>
+
+        <!-- Curated Preset Dropdown -->
+        <div class="form-group mb-3">
+          <label class="form-label text-xs font-extrabold text-teal-700 uppercase tracking-wider">
+            <span>Curated Benchmarks</span>
+            <span class="text-slate-500 font-mono" style="font-size: 10.5px;">16 Presets</span>
+          </label>
+          <select class="form-select font-mono-input" id="presetSelector" onchange="loadPreset(this.value)">
+            <option value="">Select a curated reaction preset...</option>
+          </select>
+        </div>
+
+        <!-- Reactant SMILES -->
+        <div class="form-group mb-3">
+          <label class="form-label text-xs font-extrabold text-teal-700 uppercase tracking-wider">
+            <span>Reactant Olefin Substrate</span>
+            <span class="text-slate-500 font-mono" style="font-size: 10px;">Reactant SMILES</span>
+          </label>
+          <textarea class="form-textarea font-mono-input" id="reactantSMILES" rows="2"
+                    placeholder="e.g., C=C(c1cccc(C(F)(F)F)c1)c1ccccc1Cl"
+                    oninput="debouncedRender()" onblur="renderStructures()">C=C(c1cccc(C(F)(F)F)c1)c1ccccc1Cl</textarea>
+        </div>
+
+        <!-- Ligand SMILES -->
+        <div class="form-group mb-3">
+          <label class="form-label text-xs font-extrabold text-teal-700 uppercase tracking-wider">
+            <span>Chiral Ligand Catalyst</span>
+            <span class="text-slate-500 font-mono" style="font-size: 10px;">Ligand SMILES</span>
+          </label>
+          <textarea class="form-textarea font-mono-input" id="ligandSMILES" rows="2"
+                    placeholder="e.g., C/C(=N\c1c(C(C)C)cccc1C(C)C)..."
+                    oninput="debouncedRender()" onblur="renderStructures()">C/C(=N\c1c(C(C)C)cccc1C(C)C)c1cccc(C2=N[C@@H](C(C)(C)C)CO2)n1</textarea>
+        </div>
+
+        <!-- Solvent SMILES & Additive -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;" class="mb-3">
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px;">
+              <label class="form-label text-xs font-extrabold text-teal-700 uppercase tracking-wider" style="margin-bottom: 0;">Solvent SMILES</label>
+              <span class="text-slate-500 font-mono" style="font-size: 10px;">Custom</span>
+            </div>
+            <input class="form-input font-mono-input" id="solventSMILES" type="text"
+                   value="Cc1ccccc1" placeholder="e.g., Cc1ccccc1"
+                   oninput="debouncedRender()" onblur="renderStructures()"/>
+            <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px;">
+              <button type="button" class="quick-pill" onclick="setQuickSolvent('Cc1ccccc1', 'Toluene')">Toluene</button>
+              <button type="button" class="quick-pill" onclick="setQuickSolvent('ClCCl', 'DCM')">DCM</button>
+              <button type="button" class="quick-pill" onclick="setQuickSolvent('C1CCOC1', 'THF')">THF</button>
+              <button type="button" class="quick-pill" onclick="setQuickSolvent('CO', 'MeOH')">MeOH</button>
+              <button type="button" class="quick-pill" onclick="setQuickSolvent('OCC(F)(F)F', 'TFE')">TFE</button>
+              <button type="button" class="quick-pill" onclick="setQuickSolvent('CC#N', 'MeCN')">MeCN</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label text-xs font-extrabold text-teal-700 uppercase tracking-wider">Additive</label>
+            <select class="form-select font-mono-input" id="additiveSelect" onchange="renderStructures()">
+              <option value="None">None</option>
+              <option value="CC[BH-](CC)CC.[Na+]">NaBHEt3</option>
+              <option value="[Zn]">Zn Powder</option>
+              <option value="[Mn]">Mn</option>
+              <option value="[Li]C">MeLi</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Metal & S/C Ratio -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;" class="mb-3">
+          <div class="form-group">
+            <label class="form-label text-xs font-extrabold text-teal-700 uppercase tracking-wider">Catalyst Metal</label>
+            <select class="form-select font-mono-input" id="metalSelect" onchange="renderStructures()">
+              <option value="Co">Cobalt (Co)</option>
+              <option value="Ir">Iridium (Ir)</option>
+              <option value="Rh">Rhodium (Rh)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label text-xs font-extrabold text-teal-700 uppercase tracking-wider">S/C Ratio</label>
+            <input class="form-input font-mono-input" id="scRatio" type="number" value="20" min="1" max="1000"/>
+          </div>
+        </div>
+
+        <!-- Pressure & Temperature -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;" class="mb-3">
+          <div class="form-group">
+            <label class="form-label text-xs font-extrabold text-teal-700 uppercase tracking-wider">Pressure (atm)</label>
+            <input class="form-input font-mono-input" id="pressure" type="number" value="1.0" min="0.1" max="200" step="0.5"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label text-xs font-extrabold text-teal-700 uppercase tracking-wider">Temperature (°C)</label>
+            <input class="form-input font-mono-input" id="temperature" type="number" value="25" min="-78" max="200"/>
+          </div>
+        </div>
+
+        <!-- Meta-Learning Adaptation Parameters -->
+        <div class="adaptation-box mb-4">
+          <div class="text-xs font-extrabold text-teal-700 uppercase tracking-wider" style="margin-bottom: 8px;">
+            Few-Shot Meta-Learning Adaptation
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div>
+              <label class="form-label text-xs font-extrabold text-teal-700 uppercase tracking-wider" style="font-size: 10.5px;">Support Size (N)</label>
+              <select class="form-select" id="nSupport" style="font-size: 11.5px;">
+                <option value="16">16 Reactions</option>
+                <option value="32">32 Reactions</option>
+                <option value="64" selected>64 Reactions</option>
+                <option value="128">128 Reactions</option>
+                <option value="256">256 Reactions</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label text-xs font-extrabold text-teal-700 uppercase tracking-wider" style="font-size: 10.5px;">Distance Metric</label>
+              <select class="form-select" id="distanceMetric" style="font-size: 11.5px;">
+                <option value="mahalanobis" selected>Mahalanobis</option>
+                <option value="euclidean">Euclidean</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Primary Execution Button -->
+        <button class="btn btn-primary" id="predictBtn" onclick="runPrediction()" style="width: 100%; padding: 11px 16px; font-size: 13.5px;">
+          Run Selectivity Meta-Inference
+        </button>
+      </div>
+
+      <!-- RIGHT COLUMN: Hero Readout + Molecular Structures + Nearest Neighbors -->
+      <div>
+
+        <!-- STANDBY HERO CARD -->
+        <div class="standby-card" id="readoutPlaceholder">
+          <div class="standby-title">Prediction Engine Ready</div>
+          <div class="standby-desc">
+            Configured for 1,544-dimensional Morgan circular fingerprints and reaction conditions. 
+            Select a curated reaction or input chemical parameters to generate predictions.
+          </div>
+        </div>
+
+        <!-- ACTIVE HERO PREDICTION CARD -->
+        <div class="hero-card" id="readoutCard" style="display: none;">
+          <div class="hero-metric-label">Predicted Enantiomeric Excess</div>
+          <div class="hero-flex">
+            <div class="hero-value-wrap">
+              <div class="hero-number-row">
+                <span class="hero-ee-number" id="readoutEE">--</span>
+                <span class="hero-ee-unit">% ee</span>
+              </div>
+              <div class="hero-badge-wrap">
+                <span class="clinical-badge" id="readoutLabel">Calculating...</span>
+              </div>
+            </div>
+
+            <!-- Probability & Model Meta -->
+            <div style="min-width: 260px; flex: 1;">
+              <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
+                <span class="text-secondary">High Selectivity Probability</span>
+                <span class="font-mono text-primary font-bold" id="probHighTxt">--</span>
+              </div>
+              <div style="height: 6px; background-color: var(--bg-surface-subtle); border-radius: 9999px; overflow: hidden; margin-bottom: 12px;">
+                <div id="probHighBar" style="height: 100%; width: 0%; background-color: var(--accent-teal); transition: width 0.3s ease;"></div>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: var(--text-secondary);">
+                <span>Calibrated Model:</span>
+                <span class="font-mono text-primary" id="modelUsed">ProtoNet-1544</span>
+              </div>
+
+              <!-- Ground Truth Verification Callout -->
+              <div id="groundTruthRow" style="display: none; margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--border-light); justify-content: space-between; align-items: center;">
+                <span style="font-size: 12px; color: var(--text-secondary);">Experimental Ground Truth:</span>
+                <span class="font-mono font-bold text-primary" id="groundTruthEE" style="font-size: 13px;">--</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Prototypical Distance Metrics (WOW FACTOR 2) -->
+          <div class="proto-distance-telemetry" id="protoDistanceRow" style="margin-top: 14px; padding: 10px 14px; background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #475569; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span style="font-weight: 700; color: #0F172A; letter-spacing: -0.02em;">[Latent Distance]</span>
+              <span>High-Selectivity Prototype: <strong id="distHighVal" style="color: #0D9488; font-weight: 700;">--</strong></span>
+              <span style="color: #CBD5E1;">|</span>
+              <span>Low-Selectivity Prototype: <strong id="distLowVal" style="color: #B45309; font-weight: 700;">--</strong></span>
+            </div>
+            <div id="distDeltaWrap" style="font-size: 10.5px; color: #64748B;">
+              <span>&Delta;<sub>d</sub>: <strong id="distDeltaVal" style="color: #0F172A;">--</strong></span>
+            </div>
+          </div>
+
+          <!-- Export Prediction Report Button (WOW FACTOR 1) -->
+          <div class="report-export-wrap" style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #E2E8F0; display: flex; justify-content: flex-end; align-items: center; gap: 10px;">
+            <span class="text-secondary" style="font-size: 11.5px;">Publication Snapshot:</span>
+            <button class="btn btn-secondary btn-export-report" onclick="downloadPredictionReport()" title="Generate printable PDF report of this reaction">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                <path d="M6 14h12v8H6z"/>
+              </svg>
+              <span>Download PDF Report</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2D CHEMICAL STRUCTURE VIEWER -->
+        <div>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+            <span class="section-title-teal text-xs md:text-sm font-extrabold text-teal-700 uppercase tracking-wider">
+              2D Molecular Architecture (RDKit Stereo Engine)
+            </span>
+            <button class="btn btn-secondary" onclick="renderStructures()" style="font-size: 11px; padding: 4px 10px;">
+              Re-render Structures
+            </button>
+          </div>
+
+          <div class="structure-row">
+            <!-- Reactant Card -->
+            <div class="mol-card" id="reactantCard">
+              <div class="mol-header">
+                <span>Reactant Olefin</span>
+                <span class="text-secondary font-mono" style="font-size: 10.5px;">Substrate</span>
+              </div>
+              <div class="mol-svg-canvas" id="reactantSVG">
+                <span class="text-muted font-mono" style="font-size: 12px;">Rendering...</span>
+              </div>
+              <div class="mol-descriptors" id="reactantDesc"></div>
+            </div>
+
+            <!-- Ligand Card -->
+            <div class="mol-card" id="ligandCard">
+              <div class="mol-header">
+                <span>Chiral Ligand</span>
+                <span class="metal-tag co" id="metalBadge">Co</span>
+              </div>
+              <div class="mol-svg-canvas" id="ligandSVG">
+                <span class="text-muted font-mono" style="font-size: 12px;">Rendering...</span>
+              </div>
+              <div class="mol-descriptors" id="ligandDesc"></div>
+            </div>
+
+            <!-- Solvent Card -->
+            <div class="mol-card" id="solventCard">
+              <div class="mol-header">
+                <span>Solvent & Medium</span>
+                <span class="text-secondary font-mono" style="font-size: 10.5px;">Medium</span>
+              </div>
+              <div class="mol-svg-canvas" id="solventSVG">
+                <span class="text-muted font-mono" style="font-size: 12px;">Rendering...</span>
+              </div>
+              <div class="mol-descriptors" id="solventDesc"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LITERATURE NEAREST NEIGHBORS -->
+        <div class="card" id="similarPanel" style="display: none; margin-top: 20px;">
+          <div class="card-title" style="margin-bottom: 12px;">Nearest Historical Reactions (778 Dataset)</div>
+          <div class="neighbor-list" id="similarList"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- CURATED BENCHMARK PRESETS SHELF -->
+    <div class="presets-section">
+      <div class="presets-header-wrap" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+        <div class="presets-title-block border-l-4 border-teal-500 pl-3" style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <!-- Sleek Minimalist Chemical Flask SVG Icon -->
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0D9488" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="text-teal-600">
+              <path d="M10 2v7.31L4.65 19.3A2 2 0 0 0 6.38 22h11.24a2 2 0 0 0 1.73-2.7L14 9.31V2"/>
+              <line x1="8.5" y1="2" x2="15.5" y2="2"/>
+              <line x1="7" y1="16" x2="17" y2="16"/>
+            </svg>
+            <span class="section-title-teal text-sm md:text-base font-extrabold text-teal-800 tracking-wider uppercase">
+              Curated Benchmark Presets
+            </span>
+          </div>
+          <span class="preset-subtitle-badge bg-white/70 text-slate-600 px-2.5 py-1 rounded-full text-xs font-medium ml-3 border border-teal-100 shadow-sm">
+            <span style="width: 6px; height: 6px; border-radius: 50%; background-color: #0D9488; display: inline-block;"></span>
+            16 real reactions across Cobalt, Iridium, and Rhodium catalysts
+          </span>
+        </div>
+      </div>
+      <div class="presets-grid" id="presetGrid"></div>
+    </div>
+
+  </section>
+
+
+  <!-- ══════════════════════════════════════════════════════════════════════════
+       TAB 2: MODEL EVALUATION ARENA (BENCHMARKS + EDA)
+       ══════════════════════════════════════════════════════════════════════════ -->
+  <section class="tab-pane" id="tab-evaluation">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+      <div>
+        <h2 class="text-lg md:text-xl font-extrabold text-teal-800 tracking-tight" style="color: #115E59; margin: 0;">
+          Model Training, Testing & Benchmarking Arena
+        </h2>
+        <p class="text-secondary" style="font-size: 13px; margin-top: 2px;">
+          Episodic few-shot evaluation across Prototypical Network, Random Forest, Gaussian Process, and Graph MPNN.
+        </p>
+      </div>
+    </div>
+
+    <!-- [Top: Live Few-Shot Episode Simulator] -->
+    <div class="card" style="margin-bottom: 24px;">
+      <div class="card-title text-xs md:text-sm font-extrabold text-teal-700 uppercase tracking-wider" style="margin-bottom: 14px;">
+        Live Few-Shot Episode Simulator
+      </div>
+      <div style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
+        <div style="min-width: 180px;">
+          <label class="form-label">Support Size (N_support)</label>
+          <select class="form-select bg-white border border-slate-300 shadow-sm rounded-md text-slate-900 focus:ring-2 focus:ring-teal-500 focus:border-teal-500" id="evalNSupport">
+            <option value="16">16 Reactions</option>
+            <option value="32">32 Reactions</option>
+            <option value="64" selected>64 Reactions</option>
+            <option value="128">128 Reactions</option>
+            <option value="256">256 Reactions</option>
+          </select>
+        </div>
+        <div style="min-width: 180px;">
+          <label class="form-label">Distance Metric</label>
+          <select class="form-select bg-white border border-slate-300 shadow-sm rounded-md text-slate-900 focus:ring-2 focus:ring-teal-500 focus:border-teal-500" id="evalDistance">
+            <option value="mahalanobis" selected>Mahalanobis Distance</option>
+            <option value="euclidean">Euclidean Distance</option>
+          </select>
+        </div>
+        <div style="min-width: 140px;">
+          <label class="form-label">Trials</label>
+          <select class="form-select bg-white border border-slate-300 shadow-sm rounded-md text-slate-900 focus:ring-2 focus:ring-teal-500 focus:border-teal-500" id="evalTrials">
+            <option value="3">3 Trials</option>
+            <option value="5" selected>5 Trials</option>
+            <option value="10">10 Trials</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="runEvalBtn" onclick="runBenchmark()">
+          Run Few-Shot Evaluation
+        </button>
+      </div>
+      <div id="evalStatus" style="display: none; margin-top: 12px; font-size: 12.5px; color: var(--accent-teal);" class="font-mono">
+        Executing few-shot episodes across 4 architectures...
+      </div>
+    </div>
+
+    <!-- Model Scorecards -->
+    <div class="metric-row">
+      <div class="metric-card">
+        <div style="font-size: 12px; font-weight: 600; color: var(--accent-teal); text-transform: uppercase; margin-bottom: 8px;">Prototypical Network</div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;"><span class="text-secondary">ROC-AUC:</span><span class="font-mono font-bold" id="proto-roc">--</span></div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;"><span class="text-secondary">Avg Precision:</span><span class="font-mono font-bold" id="proto-prec">--</span></div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px;"><span class="text-secondary">F1-Score:</span><span class="font-mono font-bold" id="proto-f1">--</span></div>
+      </div>
+      <div class="metric-card">
+        <div style="font-size: 12px; font-weight: 600; color: var(--accent-blue); text-transform: uppercase; margin-bottom: 8px;">Random Forest (n=200)</div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;"><span class="text-secondary">ROC-AUC:</span><span class="font-mono font-bold" id="rf-roc">--</span></div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;"><span class="text-secondary">Avg Precision:</span><span class="font-mono font-bold" id="rf-prec">--</span></div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px;"><span class="text-secondary">F1-Score:</span><span class="font-mono font-bold" id="rf-f1">--</span></div>
+      </div>
+      <div class="metric-card">
+        <div style="font-size: 12px; font-weight: 600; color: #7C3AED; text-transform: uppercase; margin-bottom: 8px;">Gaussian Process (ExactGP)</div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;"><span class="text-secondary">ROC-AUC:</span><span class="font-mono font-bold" id="gp-roc">--</span></div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;"><span class="text-secondary">Avg Precision:</span><span class="font-mono font-bold" id="gp-prec">--</span></div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px;"><span class="text-secondary">F1-Score:</span><span class="font-mono font-bold" id="gp-f1">--</span></div>
+      </div>
+      <div class="metric-card">
+        <div style="font-size: 12px; font-weight: 600; color: #D97706; text-transform: uppercase; margin-bottom: 8px;">Graph MPNN + Set2Set</div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;"><span class="text-secondary">ROC-AUC:</span><span class="font-mono font-bold" id="graph-roc">--</span></div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;"><span class="text-secondary">Avg Precision:</span><span class="font-mono font-bold" id="graph-prec">--</span></div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px;"><span class="text-secondary">F1-Score:</span><span class="font-mono font-bold" id="graph-f1">--</span></div>
+      </div>
+    </div>
+
+    <!-- [Middle: Model Benchmark Comparisons (ROC-AUC & Bar Charts)] -->
+    <div class="grid-2">
+      <div class="chart-card">
+        <div class="chart-title">Model Benchmark Comparison (ROC-AUC)</div>
+        <div class="chart-subtitle">Mean & standard deviation across few-shot test episodes</div>
+        <div id="benchmarkChart" style="min-height: 280px;"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Multi-Architecture ROC Curves</div>
+        <div class="chart-subtitle">True Positive Rate vs. False Positive Rate</div>
+        <div id="rocChart" style="min-height: 280px;"></div>
+      </div>
+      <div class="chart-card" style="grid-column: span 2;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <div>
+            <div class="chart-title">Few-Shot Data Scarcity Sensitivity Curve</div>
+            <div class="chart-subtitle">Support Reactions (N in {8, 16, 32, 64, 128, 256}) vs. ROC-AUC</div>
+          </div>
+          <button class="btn btn-secondary" onclick="loadScarcityCurve()" style="font-size: 11.5px;">Compute Curve</button>
+        </div>
+        <div id="scarcityChart" style="min-height: 300px;"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Precision-Recall Curves</div>
+        <div class="chart-subtitle">Precision vs. Recall under selectivity distribution</div>
+        <div id="prChart" style="min-height: 280px;"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Chemical Feature Importance Ranking</div>
+        <div class="chart-subtitle">Feature Gini importance across the 1,544 dimensions</div>
+        <div id="featureChart" style="min-height: 280px;"></div>
+      </div>
+    </div>
+
+    <!-- Prototypical Embedding Space -->
+    <div class="chart-card" style="margin-top: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <div>
+          <div class="chart-title">2D Prototypical Latent Embedding Space (512 Dimensions)</div>
+          <div class="chart-subtitle">Dimensionality reduction of support set, query samples, and prototype centroids</div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <select class="form-select bg-white border border-slate-300 shadow-sm rounded-md" id="embeddingMethod" style="width: auto; font-size: 12px; padding: 6px 12px;">
+            <option value="pca">PCA</option>
+            <option value="tsne">t-SNE</option>
+          </select>
+          <button class="btn btn-secondary" onclick="loadEmbedding()" style="font-size: 11.5px;">Compute Space</button>
+        </div>
+      </div>
+      <div id="embeddingChart" style="min-height: 380px;"></div>
+    </div>
+
+    <!-- [Bottom: Post-Cleaning Visual Analytics (The 6 EDA charts)] -->
+    <!-- Visual Divider -->
+    <div style="margin: 48px 0 28px 0;">
+      <hr style="border: none; border-top: 1px solid #CBD5E1; margin-bottom: 32px;"/>
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <h2 class="text-lg md:text-xl font-extrabold text-teal-800 tracking-tight" style="color: #115E59; margin: 0;">
+            Exploratory Data Analysis (EDA) & Chemical Space
+          </h2>
+          <p class="text-secondary" style="font-size: 13px; margin-top: 4px;">
+            High-contrast statistical graphical representations of the 778 cleaned reaction outcomes and chemical descriptors.
+          </p>
+        </div>
+        <button class="btn btn-secondary" onclick="loadAllEDA()" style="font-size: 12px; padding: 6px 14px;">
+          Refresh EDA Charts
+        </button>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Chart 1: ee% Distribution -->
+      <div class="chart-card">
+        <div class="chart-title">1 · Enantiomeric Excess (ee%) Distribution</div>
+        <div class="chart-subtitle">Distribution across 778 reactions with 80% ee boundary</div>
+        <div id="eeDistChart" style="min-height: 300px;"></div>
+      </div>
+
+      <!-- Chart 2: Scaffold Performance -->
+      <div class="chart-card">
+        <div class="chart-title">2 · Ligand Scaffold Performance (Typo Normalized)</div>
+        <div class="chart-subtitle">Standardized P,N-oxazoline (135 rows) and scaffold performance</div>
+        <div id="scaffoldChart" style="min-height: 300px;"></div>
+      </div>
+
+      <!-- Chart 3: Metal Distribution -->
+      <div class="chart-card">
+        <div class="chart-title">3 · Enantioselectivity by Transition Metal Center</div>
+        <div class="chart-subtitle">Violin distributions across Cobalt (532), Iridium (163), and Rhodium (83)</div>
+        <div id="metalChart" style="min-height: 300px;"></div>
+      </div>
+
+      <!-- Chart 4: Reaction Condition Phase Space -->
+      <div class="chart-card">
+        <div class="chart-title">4 · Reaction Condition Phase Space</div>
+        <div class="chart-subtitle">Temperature vs Pressure (bubble size: S/C ratio, color: ee%)</div>
+        <div id="phaseChart" style="min-height: 300px;"></div>
+      </div>
+
+      <!-- Chart 5: Correlation Heatmap -->
+      <div class="chart-card" style="grid-column: span 2;">
+        <div class="chart-title">5 · Chemical Feature Correlation Matrix</div>
+        <div class="chart-subtitle">Pearson correlation coefficients between conditions, stereocenters, and selectivity</div>
+        <div id="heatmapChart" style="min-height: 380px;"></div>
+      </div>
+
+      <!-- Chart 6: Missing Data Summary -->
+      <div class="chart-card" style="grid-column: span 2;">
+        <div class="chart-title">6 · Comprehensive Missing Data Imputation Summary</div>
+        <div class="chart-subtitle">Verification of model input completeness</div>
+        <div id="missingChartEDA" style="min-height: 300px;"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════════════
+       TAB 3: BATCH REACTION SCREENING PORTAL
+       ══════════════════════════════════════════════════════════════════════════ -->
+  <section class="tab-pane" id="tab-batch">
+    <!-- Header -->
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+      <div>
+        <h2 class="text-lg md:text-xl font-extrabold text-teal-800 tracking-tight" style="color: #115E59; margin: 0;">
+          Batch Reaction Screening Portal
+        </h2>
+        <p class="text-secondary" style="font-size: 13px; margin-top: 3px;">
+          High-throughput data ingestion for asymmetric library screening. Featurizes molecules (1,544 dimensions) and outputs calibrated enantioselectivity.
+        </p>
+      </div>
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <a href="/api/download-sample-batch-csv" class="btn btn-secondary btn-sm" download="chiralmeta_sample_batch.csv" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 6px 12px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download Sample CSV Template
+        </a>
+      </div>
+    </div>
+
+    <!-- Centered Upload & Ingestion Zone -->
+    <div style="max-width: 920px; margin: 0 auto;">
+      
+      <!-- Drag & Drop Zone -->
+      <div class="card"
+           id="dropZone" onclick="document.getElementById('fileInput').click()"
+           ondragover="event.preventDefault(); this.style.borderColor='var(--accent-teal)'; this.style.backgroundColor='#F0FDFA';"
+           ondragleave="this.style.borderColor='rgba(204, 251, 241, 0.9)'; this.style.backgroundColor='rgba(255, 255, 255, 0.60)';"
+           ondrop="handleDrop(event)"
+           style="background: rgba(255, 255, 255, 0.60); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 2px dashed rgba(204, 251, 241, 0.9); border-radius: 24px; padding: 44px 24px; text-align: center; cursor: pointer; transition: all 0.2s ease; margin-bottom: 20px;">
+        <div style="width: 52px; height: 52px; margin: 0 auto 14px auto; border-radius: 50%; background-color: #E6FFFA; display: flex; align-items: center; justify-content: center; color: var(--accent-teal);">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </div>
+        <div style="font-size: 15px; font-weight: 700; color: #1E293B; margin-bottom: 6px;">
+          Drag and drop your reaction spreadsheet here, or <span style="color: var(--accent-teal); text-decoration: underline;">browse files</span>
+        </div>
+        <div class="text-secondary" style="font-size: 12.5px;">
+          Accepts standard tabular chemical datasets: <strong>.CSV, .XLSX</strong> (up to 10,000 reactions)
+        </div>
+        <input type="file" id="fileInput" style="display: none;" accept=".csv,.xlsx" onchange="handleFileUpload(event)"/>
+      </div>
+
+      <!-- Instructions / Expected Format Panel -->
+      <div class="card mb-6" style="padding: 22px 26px; margin-bottom: 24px;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-teal)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <span class="card-title text-xs md:text-sm font-extrabold text-teal-700 uppercase tracking-wider">
+            Instructions &amp; Expected Spreadsheet Format
+          </span>
+        </div>
+        <p class="text-secondary" style="font-size: 13px; line-height: 1.5; margin-bottom: 16px;">
+          Upload a CSV/XLSX file containing Reactant, Ligand, and Solvent SMILES along with reaction conditions. The engine will parallelize featurization (1,544 dimensions) and output calibrated Enantiomeric Excess predictions.
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+          <div style="background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(8px); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 12px; padding: 12px 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+              <span class="font-mono font-bold" style="font-size: 11.5px; color: #0F172A;">Reactant SMILES</span>
+              <span class="clinical-badge" style="background:#ECFDF5; color:#065F46; font-size:9.5px; padding:1px 6px;">Required</span>
+            </div>
+            <span class="text-secondary" style="font-size: 11px;">Olefin substrate SMILES</span>
+          </div>
+
+          <div style="background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(8px); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 12px; padding: 12px 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+              <span class="font-mono font-bold" style="font-size: 11.5px; color: #0F172A;">Ligand SMILES</span>
+              <span class="clinical-badge" style="background:#ECFDF5; color:#065F46; font-size:9.5px; padding:1px 6px;">Required</span>
+            </div>
+            <span class="text-secondary" style="font-size: 11px;">Chiral ligand catalyst</span>
+          </div>
+
+          <div style="background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(8px); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 12px; padding: 12px 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+              <span class="font-mono font-bold" style="font-size: 11.5px; color: #0F172A;">Solvent SMILES</span>
+              <span class="clinical-badge" style="background:#ECFDF5; color:#065F46; font-size:9.5px; padding:1px 6px;">Required</span>
+            </div>
+            <span class="text-secondary" style="font-size: 11px;">e.g., Toluene, DCM, THF</span>
+          </div>
+
+          <div style="background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(8px); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 12px; padding: 12px 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+              <span class="font-mono font-bold" style="font-size: 11.5px; color: #0F172A;">Conditions / ee</span>
+              <span class="clinical-badge" style="background:#F1F5F9; color:#475569; font-size:9.5px; padding:1px 6px;">Optional</span>
+            </div>
+            <span class="text-secondary" style="font-size: 11px;">Pressure, Temp, S/C, ee</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Batch Loading Indicator -->
+      <div id="batchLoading" style="display: none; text-align: center; padding: 32px 0;">
+        <div style="font-size: 14px; font-weight: 600; color: var(--accent-teal); margin-bottom: 8px;" class="font-mono">
+          Parallel featurization (1,544D) and episodic meta-learning inference...
+        </div>
+        <div style="max-width: 280px; height: 5px; background-color: #E2E8F0; border-radius: 9999px; margin: 0 auto; overflow: hidden;">
+          <div style="height: 100%; width: 60%; background-color: var(--accent-teal); border-radius: 9999px; animation: pulse 1.5s infinite;"></div>
+        </div>
+      </div>
+
+      <!-- Batch Summary Statistics -->
+      <div class="card mb-6" id="batchSummary" style="display: none; padding: 22px 26px; margin-bottom: 24px;">
+        <div class="card-title text-xs md:text-sm font-extrabold text-teal-700 uppercase tracking-wider" style="margin-bottom: 16px;">Batch Screening KPI Summary</div>
+        <div class="grid-2" id="batchStats" style="gap: 14px;"></div>
+      </div>
+
+      <!-- Screening Results Table -->
+      <div class="card" id="batchResultCard" style="display: none; padding: 22px 26px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <div class="card-title text-xs md:text-sm font-extrabold text-teal-700 uppercase tracking-wider" style="margin-bottom: 2px;">Reaction Library Predictions</div>
+            <span class="text-secondary" style="font-size: 12px;" id="batchTableCount">Displaying calibrated selectivity predictions</span>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="text" id="batchSearchInput" placeholder="Filter rows..." oninput="filterBatchResults()"
+                   class="form-input" style="width: 160px; height: 32px; font-size: 12px; padding: 4px 10px;"/>
+            <button class="btn btn-primary" onclick="exportBatchCSV()" style="font-size: 12px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 6px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export Results CSV
+            </button>
+          </div>
+        </div>
+
+        <div class="table-wrap" style="max-height: 500px; overflow-y: auto;">
+          <table class="clinical-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Classification</th>
+                <th>Predicted ee%</th>
+                <th>Probability</th>
+                <th>Ground Truth</th>
+              </tr>
+            </thead>
+            <tbody id="batchTableBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Batch Pagination Controls -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 12px; border-top: 1px solid #E2E8F0;">
+          <span id="batchPageInfo" class="font-mono text-secondary" style="font-size: 12px;"></span>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary btn-sm" id="batchPrevBtn" onclick="changeBatchPage(-1)">Previous</button>
+            <button class="btn btn-secondary btn-sm" id="batchNextBtn" onclick="changeBatchPage(1)">Next</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════════════════
+       TAB 4: DATA CLEANING PIPELINE (ACCESSED VIA DATA AUDIT)
+       ══════════════════════════════════════════════════════════════════════════ -->
+  <section class="tab-pane" id="tab-cleaning">
+    <div style="margin-bottom: 16px;">
+      <button class="btn btn-secondary btn-sm" onclick="switchTab('predictor')" style="font-size: 12px; padding: 5px 12px; display: inline-flex; align-items: center; gap: 6px;">
+        &larr; Return to Predictor
+      </button>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+      <div>
+        <h2 class="text-lg md:text-xl font-extrabold text-teal-800 tracking-tight" style="color: #115E59; margin: 0;">
+          Chemical Data Cleaning Pipeline &amp; Audit Trail
+        </h2>
+        <p class="text-secondary" style="font-size: 13px; margin-top: 2px;">
+          Audited transformation of Co_AHOreaction_data.xlsx (532 rows) and out-of-sample-test-set.xlsx (246 rows) = 778 total reactions.
+        </p>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn btn-secondary" onclick="triggerCleaning()">Run Data Audit</button>
+        <a href="/api/download-cleaned-csv" class="btn btn-primary">Download Cleaned Dataset</a>
+      </div>
+    </div>
+
+    <!-- Metrics Row -->
+    <div class="metric-row">
+      <div class="metric-card">
+        <div class="metric-val" id="cm-total">778</div>
+        <div class="metric-lbl">Total Screened Reactions</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val text-teal" id="cm-high">623</div>
+        <div class="metric-lbl">High Selectivity (ee &ge; 80%)</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val text-secondary" id="cm-low">155</div>
+        <div class="metric-lbl">Low Selectivity (ee &lt; 80%)</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val text-primary" id="cm-stages">8</div>
+        <div class="metric-lbl">Cleaning Stages</div>
+      </div>
+    </div>
+
+    <!-- 8 Documented Cleaning Stages -->
+    <div id="stageCards" style="margin-bottom: 24px;">
+      <div style="text-align: center; padding: 40px;" class="text-muted font-mono">
+        Loading audit records...
+      </div>
+    </div>
+
+    <!-- Missing Data Chart -->
+    <div class="chart-card">
+      <div class="chart-title">Missing Data Imputation Audit (Before vs. After Cleaning)</div>
+      <div class="chart-subtitle">Audit demonstrating 0% missing values in final 1,544-dimensional model matrix</div>
+      <div id="missingChart" style="min-height: 340px;"></div>
+    </div>
+  </section>
+</main>
+
+<!-- BROWSE 778 REACTIONS MODAL -->
+<div id="datasetModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 500; overflow-y: auto; padding: 48px 16px;">
+  <div style="max-width: 1000px; margin: 0 auto;">
+    <div class="card" style="box-shadow: var(--shadow-float);">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+        <div>
+          <div style="font-size: 16px; font-weight: 700; color: var(--text-primary);">All 778 Screened Reactions</div>
+          <div class="text-secondary" style="font-size: 12.5px;">Browse and filter dataset reactions to populate workbench parameters</div>
+        </div>
+        <button class="btn btn-secondary" onclick="closeDatasetModal()">Close</button>
+      </div>
+
+      <!-- Filters -->
+      <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px;">
+        <select class="form-select" id="filterMetal" style="width: auto; font-size: 12.5px;" onchange="browseReactions(1)">
+          <option value="">All Metals</option>
+          <option value="Co">Cobalt (Co)</option>
+          <option value="Ir">Iridium (Ir)</option>
+          <option value="Rh">Rhodium (Rh)</option>
+        </select>
+        <select class="form-select" id="filterScaffold" style="width: auto; font-size: 12.5px;" onchange="browseReactions(1)">
+          <option value="">All Scaffolds</option>
+          <option value="bisphosphine">Bisphosphine</option>
+          <option value="NNN-pincer">NNN-Pincer</option>
+          <option value="P,N-oxazoline">P,N-Oxazoline</option>
+          <option value="ferrocene">Ferrocene Bisphosphine</option>
+          <option value="phosphoramidite">Phosphoramidite</option>
+        </select>
+        <input class="form-input font-mono-input" id="filterEEMin" type="number" placeholder="Min ee%" style="width: 110px; font-size: 12.5px;" oninput="browseReactions(1)"/>
+        <input class="form-input font-mono-input" id="filterEEMax" type="number" placeholder="Max ee%" style="width: 110px; font-size: 12.5px;" oninput="browseReactions(1)"/>
+      </div>
+
+      <div class="table-wrap" style="max-height: 480px;">
+        <table class="clinical-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Source</th>
+              <th>Metal</th>
+              <th>Scaffold</th>
+              <th>Olefin</th>
+              <th>ee%</th>
+              <th>Class</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="browseTableBody"></tbody>
+        </table>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
+        <span id="browseCount" class="font-mono text-secondary" style="font-size: 12px;"></span>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-secondary" id="prevPageBtn" onclick="browseReactions(currentPage-1)" style="font-size: 12px;">Previous</button>
+          <span id="pageInfo" class="font-mono text-secondary" style="font-size: 12px; display: flex; align-items: center;"></span>
+          <button class="btn btn-secondary" id="nextPageBtn" onclick="browseReactions(currentPage+1)" style="font-size: 12px;">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/static/app.js?v=2.5"></script>
+</body>
+</html>

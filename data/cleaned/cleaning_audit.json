@@ -1,0 +1,146 @@
+{
+  "generated_at": "2026-10-17T06:49:48.066389",
+  "stages": {
+    "stage1_missing_imputation": [
+      "Additive SMILES imputed 'None': Co=139/532, OOS=246/246",
+      "Product SMILES: excluded from model X (target-leakage prevention); kept for display",
+      "Conv.: 239 missing values \u2014 median-imputed per (Metal, Scaffold) for EDA only",
+      "Yield: 268 missing values \u2014 median-imputed per (Metal, Scaffold) for EDA only",
+      "Conv.: 87 missing values \u2014 median-imputed per (Metal, Scaffold) for EDA only",
+      "Yield: 143 missing values \u2014 median-imputed per (Metal, Scaffold) for EDA only",
+      "time(h): 14 missing imputed via (Metal, Scaffold) group median = 24.0h",
+      "ee target \u2014 Co: 0 missing (\u2713 0 expected)",
+      "ee target \u2014 OOS: 0 missing (\u2713 0 expected)"
+    ],
+    "stage2_typo_normalization": [
+      "Co: 'P,N oxazoline' \u2192 'P,N-oxazoline' (0 rows). Categories after: ['NNN-pincer', 'bisphosphine', 'ferrocene bisphosphine', 'phosphine-pyridine-oxazoline(PPO)']",
+      "OOS: 'P,N oxazoline' \u2192 'P,N-oxazoline' (105 rows). Categories after: ['P,N', 'P,N-oxazoline', 'bisphosphine', 'ferrocene bisphosphine', 'phosphite', 'phosphoramidite']"
+    ],
+    "stage3_pressure_cleaning": [
+      "Co pressure (Pressure/atm): rounded to 2dp; Pressure_bar_equivalent added",
+      "OOS pressure (Pressure/atm): bar\u2192atm artifacts cleaned; rounded to 2dp"
+    ],
+    "stage4_smiles_validation": [
+      "All SMILES: tilde\u2192hyphen replacement, then RDKit canonicalization",
+      "Stereo extracted: Tet_CW/CCW, Bond_Cis/Trans per (Reactant, Ligand, Solvent)",
+      "Physicochemical: MolWt, ChiralCenters computed per molecule",
+      "Transition metals (Co, Ir, Rh, Fe, Cr, Zn, Mn) handled by RDKit safely"
+    ],
+    "stage5_doi_normalization": [
+      "Column 'DOI' normalized to full https://doi.org/... URLs",
+      "Column 'DOI' normalized to full https://doi.org/... URLs"
+    ],
+    "stage6_binarization_clustering": [
+      "ee_class = 1 if ee >= 80.0% else 0",
+      "Co: 419 High / 113 Low",
+      "OOS: 204 High / 42 Low",
+      "Task clusters C1-C8 assigned by (Metal, Scaffold type, Olefin Type)"
+    ],
+    "stage7_metal_encoding": [
+      "metal_1=Co, metal_2=Ir, metal_3=Rh (one-hot from Metal column)"
+    ],
+    "stage8_feature_matrix": [
+      "X: (778, 1544) = [512 react FP | 512 lig FP | 512 solv FP | 8 conditions]",
+      "Conditions: [pressure, temperature, S/C, metal_1(Co), metal_2(Ir), metal_3(Rh), add_1, add_2]",
+      "y (ee_class): 623 High / 155 Low",
+      "Assertion X.shape[1]==1544: PASSED"
+    ]
+  },
+  "row_counts": {
+    "co_raw": 532,
+    "oos_raw": 246,
+    "combined_clean": 778,
+    "co_clean": 532,
+    "oos_clean": 246
+  },
+  "missing_before": {
+    "Reactant SMILES": 0,
+    "Product SMILES": 246,
+    "solvent SMILES": 0,
+    "Additive SMILES": 385,
+    "Metal": 0,
+    "Ligand SMILES": 0,
+    "Pressure/atm": 0,
+    "Temperature/C": 0,
+    "S/C": 0,
+    "Conv.": 326,
+    "Yield": 411,
+    "time(h)": 14,
+    "ee": 0,
+    "Scaffold type": 0,
+    "Olefin Type": 0,
+    "DOI": 0,
+    "source": 0
+  },
+  "missing_after": {
+    "Reactant SMILES": 0,
+    "Product SMILES": 0,
+    "solvent SMILES": 0,
+    "Additive SMILES": 0,
+    "Metal": 0,
+    "Ligand SMILES": 0,
+    "Pressure/atm": 0,
+    "Temperature/C": 0,
+    "S/C": 0,
+    "Conv.": 326,
+    "Yield": 411,
+    "time(h)": 0,
+    "ee": 0,
+    "Scaffold type": 0,
+    "Olefin Type": 0,
+    "DOI": 0,
+    "source": 0,
+    "add_1": 0,
+    "add_2": 0,
+    "Conv._imputed": 0,
+    "Yield_imputed": 0,
+    "Pressure_bar_equivalent": 0,
+    "Tet_CW_Reactant": 0,
+    "Tet_CCW_Reactant": 0,
+    "Bond_Cis_Reactant": 0,
+    "Bond_Trans_Reactant": 0,
+    "MolWt_Reactant": 0,
+    "ChiralCenters_Reactant": 0,
+    "Tet_CW_Ligand": 0,
+    "Tet_CCW_Ligand": 0,
+    "Bond_Cis_Ligand": 0,
+    "Bond_Trans_Ligand": 0,
+    "MolWt_Ligand": 0,
+    "ChiralCenters_Ligand": 0,
+    "Tet_CW_Solvent": 0,
+    "Tet_CCW_Solvent": 0,
+    "Bond_Cis_Solvent": 0,
+    "Bond_Trans_Solvent": 0,
+    "MolWt_Solvent": 0,
+    "ChiralCenters_Solvent": 0,
+    "ee_class": 0,
+    "cluster": 0,
+    "metal_1": 0,
+    "metal_2": 0,
+    "metal_3": 0
+  },
+  "ee_statistics": {
+    "Co": {
+      "min": 0.0,
+      "max": 99.0,
+      "mean": 82.28,
+      "median": 92.0
+    },
+    "OOS": {
+      "min": 0.0,
+      "max": 99.9,
+      "mean": 83.76,
+      "median": 93.0
+    }
+  },
+  "scaffold_distribution": {
+    "bisphosphine": 349,
+    "NNN-pincer": 149,
+    "P,N-oxazoline": 135,
+    "ferrocene bisphosphine": 79,
+    "phosphine-pyridine-oxazoline(PPO)": 37,
+    "P,N": 24,
+    "phosphite": 4,
+    "phosphoramidite": 1
+  }
+}
