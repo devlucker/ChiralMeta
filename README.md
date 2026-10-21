@@ -130,25 +130,40 @@ The pipeline processes **778 total reactions** across two datasets:
 
 Each reaction is encoded into a fixed-length 1,544-dimensional representation:
 
-$$\mathbf{x} = \Big[ \underbrace{\mathbf{f}_{\text{react}}}_{512} \,\Vert\, \underbrace{\mathbf{f}_{\text{lig}}}_{512} \,\Vert\, \underbrace{\mathbf{f}_{\text{solv}}}_{512} \,\Vert\, \underbrace{\mathbf{c}_{\text{cond}}}_{8} \Big] \in \mathbb{R}^{1544}$$
+```math
+\mathbf{x} = \Big[ \underbrace{\mathbf{f}_{\text{react}}}_{512} \,\Vert\, \underbrace{\mathbf{f}_{\text{lig}}}_{512} \,\Vert\, \underbrace{\mathbf{f}_{\text{solv}}}_{512} \,\Vert\, \underbrace{\mathbf{c}_{\text{cond}}}_{8} \Big] \in \mathbb{R}^{1544}
+```
 
 - **Reactant Olefin (0..511)**: 512-bit Morgan Circular Fingerprint ($\text{radius}=2$, chirality enabled).
 - **Chiral Ligand (512..1023)**: 512-bit Morgan Circular Fingerprint ($\text{radius}=2$, chirality enabled).
 - **Solvent (1024..1535)**: 512-bit Morgan Circular Fingerprint ($\text{radius}=2$, chirality enabled).
 - **Reaction Conditions (1536..1543)**: 8 continuous & one-hot descriptors:
-  $$\mathbf{c}_{\text{cond}} = \left[ P\,(\text{atm}),\, T\,(^\circ\text{C}),\, S/C,\, \text{metal}_1,\, \text{metal}_2,\, \text{metal}_3,\, \text{add}_1,\, \text{add}_2 \right]$$
+
+```math
+\mathbf{c}_{\text{cond}} = \left[ P\,(\text{atm}),\, T\,(^{\circ}\text{C}),\, S/C,\, \text{metal}_1,\, \text{metal}_2,\, \text{metal}_3,\, \text{add}_1,\, \text{add}_2 \right]
+```
 
 ---
 
 ## 🧠 Machine Learning & Meta-Learning Architectures
 
 ### 1. Prototypical Network with Mahalanobis Distance Metric
+
 A deep non-linear projection $f_\theta: \mathbb{R}^{1544} \to \mathbb{R}^{512}$ maps chemical reactions into a metric embedding space where classes form clustered prototypes:
-$$\mathbf{c}_k = \frac{1}{|S_k|} \sum_{(\mathbf{x}_i, y_i) \in S_k} f_\theta(\mathbf{x}_i)$$
+
+```math
+\mathbf{c}_k = \frac{1}{|S_k|} \sum_{(\mathbf{x}_i, y_i) \in S_k} f_\theta(\mathbf{x}_i)
+```
 
 Rather than assuming isotropic spherical clusters via standard Euclidean distance, ChiralMeta computes the regularized Mahalanobis distance to account for non-isotropic variance:
-$$d_M(\mathbf{z}, \mathbf{c}_k) = \sqrt{(\mathbf{z} - \mathbf{c}_k)^T \mathbf{\Sigma}_k^{-1} (\mathbf{z} - \mathbf{c}_k)}$$
-$$p(y = k \mid \mathbf{x}) = \frac{\exp\left(-d_M(f_\theta(\mathbf{x}), \mathbf{c}_k)\right)}{\sum_{k'} \exp\left(-d_M(f_\theta(\mathbf{x}), \mathbf{c}_{k'})\right)}$$
+
+```math
+d_M(\mathbf{z}, \mathbf{c}_k) = \sqrt{(\mathbf{z} - \mathbf{c}_k)^T \mathbf{\Sigma}_k^{-1} (\mathbf{z} - \mathbf{c}_k)}
+```
+
+```math
+p(y = k \mid \mathbf{x}) = \frac{\exp\left(-d_M(f_\theta(\mathbf{x}), \mathbf{c}_k)\right)}{\sum_{k'} \exp\left(-d_M(f_\theta(\mathbf{x}), \mathbf{c}_{k'})\right)}
+```
 
 ### 2. Random Forest Baseline
 - Ensemble of 200 trees trained on standardized 1,544-dimensional features.
